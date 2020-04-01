@@ -2,6 +2,8 @@
 
 import csv
 
+ENTRIES = []
+
 class Entry:
     def __init__(self, line):
         (self.date,
@@ -18,24 +20,29 @@ class Entry:
 
 
 def entries():
-    with open('us-counties.csv') as f:
-        reader = csv.reader(f)
-        for i, line in enumerate(reader):
-            if i == 0:
-                continue
-            yield Entry(line)
+    if ENTRIES:
+        for e in ENTRIES:
+            yield e
+    else:
+        with open('../us-counties.csv') as f:
+            reader = csv.reader(f)
+            for i, line in enumerate(reader):
+                if i == 0:
+                    continue
+                e = Entry(line)
+                ENTRIES.append(e)
+                yield e
 
 
 def latest():
     fips = {}
     for entry in entries():
         fips[entry.fips] = entry.cases
-    print fips
-    return sorted(fips.items(), key=lambda x: -x[1])
+    return fips
 
 
 def top(k=10):
-    return [x[0] for x in latest()[:k]]
+    return [x[0] for x in sorted(latest().items(), key=lambda x: - x[1])[:k]]
 
 
 def increase(entries):
@@ -47,6 +54,17 @@ def increase(entries):
             rate = float(entry.cases)/last - 1
         yield entry, rate
         last = entry.cases
+
+
+def trend():
+    result = {}
+    for fips in latest().keys():
+        s = ''
+        for e, rate in list(increase([
+            e for e in entries() if e.fips == fips]))[-10:]:
+            s += '<br>%s %s %2.f%%' % (e.date, e.cases, rate*100)
+        result[fips] = s
+    return result
 
 
 for fips in top(5):
@@ -66,17 +84,27 @@ def bracket(n):
 
 
 def fips_bracket():
-    for f, n in latest():
+    for f, n in latest().items():
         yield f, bracket(n)
 
 
 def bracket_fips():
-    result = {}
+    # Prefill all brackets so that empty lists are included.
+    result = {i : [] for i in range(len(Brackets))}
     for f, b in fips_bracket():
-        result.setdefault(b, []).append(f)
+        result[b].append(f)
     return result
 
 
-print bracket_fips()
+def write_js():
+    s = open('map-base.js').read()
+    s += ('\nCountyColor = %s\nLatest = %s\nTrend = %s' %
+            (bracket_fips(),
+             latest(), 
+             trend()))
+    with open('map.js', 'w') as f:
+        f.write(s)
+    print 'js written.'
 
-print len(latest())
+
+write_js()
