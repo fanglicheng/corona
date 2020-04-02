@@ -408,14 +408,26 @@ function numberList(fips) {
 }
 
 function setColors(fips, c) {
-    var layer = 'counties-highlighted-' + c;
+    //var layer = 'counties-highlighted-' + c;
 
     filter = baseFilter;
-    filter = filter.concat(fips);
-    filter = filter.concat(numberList(fips));
+    filter = filter.concat([fips]);
+    filter = filter.concat(numberList([fips]));
 
-    map.setFilter(layer, filter);
-    map.setPaintProperty(layer, 'fill-color', '#' + c);
+    // map.setFilter(layer, filter);
+    map.addLayer({
+      "id": fips,
+      "type": "fill",
+      "source": "counties",
+      "source-layer": "original",
+      "paint": {
+        "fill-outline-color": "#888888",
+        "fill-color": "#" + c,
+        "fill-opacity": 0.75
+      },
+      "filter": filter
+    })
+      //map.setPaintProperty(layer, 'fill-color', '#' + c);
 }
 
 function clear() {
@@ -426,10 +438,14 @@ function clear() {
 
 function paint() {
   console.log('paint')
-  for (var i in CoronaColors) {
-      setColors(CountyColor[i], CoronaColors[i])
+  for (var i in CountyColor) {
+      for (var fips of CountyColor[i]) {
+            console.log('paint: ' + fips)
+            setColors(fips, CoronaColors[i])
+      }
   }
 }
+
 
 function corona() {
   console.log('corona!')

@@ -446,6 +446,7 @@ function paint() {
   }
 }
 
+
 function corona() {
   console.log('corona!')
   clear()
