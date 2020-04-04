@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import csv
+from copy import deepcopy
 
 ENTRIES = []
 
@@ -19,6 +20,18 @@ class Entry:
         return '%s %s %s %s' % (self.date, self.county, self.state, self.cases)
 
 
+def maybe_new_york(entry):
+    if entry.county == 'New York City':
+        for name, fips in [('Richmond', '36085'), ('Kings', '36047'), ('Queens',
+            '36081'), ('Bronx', '36005'), ('New York', '36061')]:
+            e = deepcopy(entry)
+            e.county = name
+            e.fips = fips
+            yield e
+    else:
+        yield entry
+
+
 def entries():
     if ENTRIES:
         for e in ENTRIES:
@@ -29,9 +42,10 @@ def entries():
             for i, line in enumerate(reader):
                 if i == 0:
                     continue
-                e = Entry(line)
-                ENTRIES.append(e)
-                yield e
+                entry = Entry(line)
+                for e in maybe_new_york(entry):
+                    ENTRIES.append(e)
+                    yield e
 
 
 def latest():

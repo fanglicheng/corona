@@ -141,8 +141,16 @@ map.on('load', function() {
         console.log(fips)
     }
     console.log(fips)
+    var title = feature.properties.COUNTY
+    if (fips == 36085 ||
+        fips == 36047 ||
+        fips == 36081 ||
+        fips == 36005 ||
+        fips == 36061) {
+        title = 'New York City'
+    }
     popup.setLngLat(e.lngLat)
-      .setHTML(feature.properties.COUNTY + ' : ' +  (Latest[fips] || 0) + (Trend[fips] || ''))
+      .setHTML(title + ' : ' +  (Latest[fips] || 0) + (Trend[fips] || ''))
       .addTo(map);
   });
 });
