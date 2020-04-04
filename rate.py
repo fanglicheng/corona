@@ -92,6 +92,9 @@ def bracket_fips():
     # Prefill all brackets so that empty lists are included.
     result = {i : [] for i in range(len(Brackets))}
     for f, b in fips_bracket():
+        if b is None:
+            print 'Warning: bad bracket'
+            continue
         result[b].append(f)
     return result
 
