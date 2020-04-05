@@ -323,19 +323,19 @@ function getFips() {
 /// color picker
 ////
 
-var swatches = document.getElementById('swatches');
-// var layer = document.getElementById('layer');
-
-paletteColors.forEach(function(color) {
-
-  var swatch = document.createElement('button');
-  swatch.style.backgroundColor = color;
-  swatch.addEventListener('click', function() {
-    currentColor = color;
-  });
-  swatches.appendChild(swatch);
-
-});
+//var swatches = document.getElementById('swatches');
+//// var layer = document.getElementById('layer');
+//
+//paletteColors.forEach(function(color) {
+//
+//  var swatch = document.createElement('button');
+//  swatch.style.backgroundColor = color;
+//  swatch.addEventListener('click', function() {
+//    currentColor = color;
+//  });
+//  swatches.appendChild(swatch);
+//
+//});
 
 function rawColorValue(color) {
   // color looks like #123456
