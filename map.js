@@ -62,7 +62,7 @@ map.on('load', function() {
     "type": "fill",
     "source": "us-counties",
     "paint": {
-      "fill-outline-color": "rgba(100,0,0,0.1)",
+      "fill-outline-color": "rgba(500,500,500,0.6)",
       "fill-color":
         [
           'interpolate',
