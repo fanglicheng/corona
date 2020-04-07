@@ -161,23 +161,13 @@ map.on('load', function() {
     // Add features that share the same county name to the highlighted layer.
     // map.setFilter('counties-highlighted', ['==', 'COUNTY', feature.properties.COUNTY]);
 
-    // Display a popup with the name of the county
-    console.log('feature!')
-    console.log(feature)
-    fips = feature.properties.FIPS
-    if (typeof(fips) == 'number') {
-        console.log('is number')
-        fips = '' + fips
-        console.log(fips)
-    }
-    console.log(fips)
+    fips = feature.properties.GEO_ID.slice(-5)
     var title = feature.properties.NAME
-    console.log('title: ' + title)
-    if (fips == 36085 ||
-        fips == 36047 ||
-        fips == 36081 ||
-        fips == 36005 ||
-        fips == 36061) {
+    if (fips == "36085" ||
+        fips == "36047" ||
+        fips == "36081" ||
+        fips == "36005" ||
+        fips == "36061") {
         title = 'New York City'
     }
     popup.setLngLat(e.lngLat)
