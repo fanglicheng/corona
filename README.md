@@ -8,3 +8,7 @@ https://github.com/nytimes/covid-19-data
 Map template:
 
 https://codepen.io/roblabs/pen/PGMqgp
+
+US county geojson:
+
+https://eric.clst.org/tech/usgeojson/
