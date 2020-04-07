@@ -181,7 +181,7 @@ map.on('load', function() {
         title = 'New York City'
     }
     popup.setLngLat(e.lngLat)
-      .setHTML(title + ' : ' + feature.properties.cases)
+      .setHTML(title + ' : ' + feature.properties.cases + feature.properties.trend)
       .addTo(map);
   });
 

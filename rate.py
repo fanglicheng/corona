@@ -130,6 +130,7 @@ latest_cases = latest()
 
 
 def write_geojson():
+    fips_trend = trend()
     with open('gz_2010_us_050_00_20m.json', encoding='ISO-8859-1') as fin:
         data = json.load(fin)
         for f in data['features']:
@@ -137,6 +138,8 @@ def write_geojson():
             fips = p['GEO_ID'][-5:]
             entry = latest_cases.get(fips)
             p['cases'] = latest_cases[fips].cases if entry else 0
+            t = fips_trend.get(fips)
+            p['trend'] = t if t else ''
 
         with open('county-cases.json', 'w') as fout:
             json.dump(data, fout)
