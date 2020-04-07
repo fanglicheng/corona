@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import csv
 from copy import deepcopy
+import json
 
 ENTRIES = []
 
@@ -51,12 +52,13 @@ def entries():
 def latest():
     fips = {}
     for entry in entries():
-        fips[entry.fips] = entry.cases
+        fips[entry.fips] = entry
     return fips
 
 
 def top(k=10):
-    return [x[0] for x in sorted(latest().items(), key=lambda x: - x[1])[:k]]
+    return [x[0] for x in sorted(
+        latest().items(), key=lambda x: - x[1].cases)[:k]]
 
 
 def increase(entries):
@@ -82,10 +84,10 @@ def trend():
 
 
 for fips in top(5):
-    print
+    print()
     for entry, rate in increase([entry for entry in entries()
         if entry.fips == fips]):
-        print entry, '%2.f%%' % (rate*100)
+        print(entry, '%2.f%%' % (rate*100))
 
 
 Brackets = [(1, 9), (10, 99), (100, 999), (1000, 9999), (10000, 99999)]
@@ -98,8 +100,8 @@ def bracket(n):
 
 
 def fips_bracket():
-    for f, n in latest().items():
-        yield f, bracket(n)
+    for f, e in latest().items():
+        yield f, bracket(e.cases)
 
 
 def bracket_fips():
@@ -107,7 +109,7 @@ def bracket_fips():
     result = {i : [] for i in range(len(Brackets))}
     for f, b in fips_bracket():
         if b is None:
-            print 'Warning: bad bracket'
+            print('Warning: bad bracket')
             continue
         result[b].append(f)
     return result
@@ -121,7 +123,24 @@ def write_js():
              trend()))
     with open('map.js', 'w') as f:
         f.write(s)
-    print 'js written.'
+    print('js written.')
 
 
-write_js()
+latest_cases = latest()
+
+
+def write_geojson():
+    with open('gz_2010_us_050_00_20m.json', encoding='ISO-8859-1') as fin:
+        data = json.load(fin)
+        for f in data['features']:
+            p = f['properties']
+            fips = p['GEO_ID'][-5:]
+            entry = latest_cases.get(fips)
+            p['cases'] = latest_cases[fips].cases if entry else 0
+
+        with open('county-cases.json', 'w') as fout:
+            json.dump(data, fout)
+    print('geojson written.')
+
+
+write_geojson()
