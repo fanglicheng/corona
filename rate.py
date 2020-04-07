@@ -28,6 +28,8 @@ def maybe_new_york(entry):
             e = deepcopy(entry)
             e.county = name
             e.fips = fips
+            if e.cases == 0:
+                print(e)
             yield e
     else:
         yield entry
@@ -44,6 +46,8 @@ def entries():
                 if i == 0:
                     continue
                 entry = Entry(line)
+                if entry.cases == 0:
+                    continue
                 for e in maybe_new_york(entry):
                     ENTRIES.append(e)
                     yield e
