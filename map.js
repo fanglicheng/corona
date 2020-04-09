@@ -12,7 +12,7 @@ var map = new mapboxgl.Map({
 var overlay = document.getElementById('map-overlay');
 
 var popup = new mapboxgl.Popup({
-  closeButton: false
+  // closeButton: false
 });
 
 map.on('load', function() {
@@ -69,7 +69,7 @@ map.on('load', function() {
     ]
   }, 'place-city-sm')
 
-  map.on('mousemove', function(e) {
+  map.on('click', function(e) {
     var features = map.queryRenderedFeatures(e.point, {
       layers: ['us-counties', 'us-counties-inc']
     });
