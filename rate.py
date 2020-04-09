@@ -118,35 +118,8 @@ for fips in top(5):
         print(entry, '%2.f%%' % (rate*100))
 
 
-Brackets = [(1, 9), (10, 99), (100, 999), (1000, 9999), (10000, 99999)]
-
-
-def bracket(n):
-    for i, (low, high) in enumerate(Brackets):
-        if low <= n <= high:
-            return i
-
-
-def fips_bracket():
-    for f, e in latest().items():
-        yield f, bracket(e.cases)
-
-
-def bracket_fips():
-    # Prefill all brackets so that empty lists are included.
-    result = {i : [] for i in range(len(Brackets))}
-    for f, b in fips_bracket():
-        if b is None:
-            print('Warning: bad bracket')
-            continue
-        result[b].append(f)
-    return result
-
-
-latest_cases = latest()
-
-
 def write_geojson():
+    latest_cases = latest()
     fips_trend = trend()
     fips_last_3_days = last_3_days()
     with open('gz_2010_us_050_00_20m.json', encoding='ISO-8859-1') as fin:
