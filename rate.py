@@ -53,6 +53,20 @@ def entries():
                     yield e
 
 
+FIPS_ENTRIES = None
+
+
+def fips_entries():
+    global FIPS_ENTRIES
+    if FIPS_ENTRIES:
+        return FIPS_ENTRIES
+    result = {}
+    for e in entries():
+        result.setdefault(e.fips, []).append(e)
+    FIPS_ENTRIES = result
+    return result
+    
+
 def latest():
     fips = {}
     for entry in entries():
@@ -78,12 +92,22 @@ def increase(entries):
 
 def trend():
     result = {}
-    for fips in latest().keys():
+    for fips, entries in fips_entries().items():
         s = ''
-        for e, rate in list(increase([
-            e for e in entries() if e.fips == fips]))[-10:]:
+        for e, rate in list(increase(entries))[-10:]:
             s += '<br>%s %s %2.f%%' % (e.date, e.cases, rate*100)
         result[fips] = s
+    return result
+
+
+def last_3_days():
+    result = {}
+    for fips, entries in fips_entries().items():
+        if len(entries) < 4:
+            continue
+        if entries[-1].cases < 50:
+            continue
+        result[fips] = (entries[-1].cases / entries[-4].cases) ** (1/3) - 1
     return result
 
 
@@ -119,22 +143,12 @@ def bracket_fips():
     return result
 
 
-def write_js():
-    s = open('map-base.js').read()
-    s += ('\nCountyColor = %s\nLatest = %s\nTrend = %s' %
-            (bracket_fips(),
-             latest(), 
-             trend()))
-    with open('map.js', 'w') as f:
-        f.write(s)
-    print('js written.')
-
-
 latest_cases = latest()
 
 
 def write_geojson():
     fips_trend = trend()
+    fips_last_3_days = last_3_days()
     with open('gz_2010_us_050_00_20m.json', encoding='ISO-8859-1') as fin:
         data = json.load(fin)
         for f in data['features']:
@@ -144,6 +158,8 @@ def write_geojson():
             p['cases'] = latest_cases[fips].cases if entry else 0
             t = fips_trend.get(fips)
             p['trend'] = t if t else ''
+            i = fips_last_3_days.get(fips)
+            p['increase'] = i*100 if i else 0
 
         with open('county-cases.json', 'w') as fout:
             json.dump(data, fout)

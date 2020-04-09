@@ -68,7 +68,7 @@ map.on('load', function() {
           'interpolate',
           ['linear'],
           ['get', 'cases'],
-          0, '#eeeeee',
+          0, '#99ee99',
           1, '#fed976',
           10, '#feb24c',
           100, '#fd8d3c',
@@ -77,14 +77,34 @@ map.on('load', function() {
         ],
       "fill-opacity": 0.6
     },
-    //"filter": [
-    //  "in",
-    //  "GEO_ID",
-    //  "0500000US06085",
-    //  "0500000US36081",
-    //  "0500000US36005"
-    //]
   }, 'place-city-sm')
+
+  map.addLayer({
+    "id": "us-counties-inc",
+    "type": "fill",
+    "source": "us-counties",
+    "paint": {
+      "fill-outline-color": "rgba(500,500,500,0.6)",
+      "fill-color":
+        [
+          'interpolate',
+          ['linear'],
+          ['get', 'increase'],
+          0, '#99ee99',
+          5, '#fed976',
+          10, '#feb24c',
+          15, '#fd8d3c',
+          20, '#f03b20',
+          25, '#bd0026'
+        ],
+      "fill-opacity": 0.6
+    },
+    "filter": [
+      "in",
+      "GEO_ID",
+    ]
+  }, 'place-city-sm')
+
 
   //map.addLayer({
   //  "id": "counties",
@@ -123,7 +143,7 @@ map.on('load', function() {
 
   map.on('mousemove', function(e) {
     var features = map.queryRenderedFeatures(e.point, {
-      layers: ['us-counties']
+      layers: ['us-counties-inc']
     });
     console.log(features)
 
@@ -171,7 +191,7 @@ map.on('load', function() {
         title = 'New York City'
     }
     popup.setLngLat(e.lngLat)
-      .setHTML(title + ' : ' + feature.properties.cases + feature.properties.trend)
+      .setHTML(title + ' : ' + feature.properties.cases + '<br>Avg gain in last 3 days: ' + feature.properties.increase.toFixed(0) + '%' + feature.properties.trend)
       .addTo(map);
   });
 
@@ -404,6 +424,16 @@ $(function() {
 
   }).trigger('change');
 });
+
+$("#color-case").click(function() {
+    map.setFilter('us-counties');
+    map.setFilter('us-counties-inc', ['in', 'GEO_ID']);
+})
+
+$("#color-inc").click(function() {
+    map.setFilter('us-counties', ['in', 'GEO_ID']);
+    map.setFilter('us-counties-inc');
+})
 
 var Colors = [
   'ffffcc',
