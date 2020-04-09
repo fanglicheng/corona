@@ -7,6 +7,8 @@ var tags = [];
 var baseFilter = ['in', 'FIPS'];
 var byColor;
 
+var legend = true;
+
 var paletteColors = [
   '#ffffcc',
   '#a1dab4',
@@ -433,6 +435,20 @@ $("#color-case").click(function() {
 $("#color-inc").click(function() {
     map.setFilter('us-counties', ['in', 'GEO_ID']);
     map.setFilter('us-counties-inc');
+})
+
+$("#toggle").click(function() {
+    $("#legend").toggle()
+    if (legend) {
+        legend = false
+        $("#legend-box").css("padding-right", "5px")
+        $("#toggle").text("+")
+    } else {
+        legend = true
+        $("#toggle").text("x")
+        $("#legend-box").css("padding-right", "0px")
+    }
+    
 })
 
 var Colors = [
