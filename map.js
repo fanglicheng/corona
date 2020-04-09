@@ -143,7 +143,7 @@ map.on('load', function() {
 
   map.on('mousemove', function(e) {
     var features = map.queryRenderedFeatures(e.point, {
-      layers: ['us-counties-inc']
+      layers: ['us-counties', 'us-counties-inc']
     });
     console.log(features)
 
