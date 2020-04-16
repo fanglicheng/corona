@@ -100,6 +100,10 @@ def trend():
     return result
 
 
+def three_day_gain(new, old):
+    return (new / old) ** (1/3) - 1
+
+
 def last_3_days():
     result = {}
     for fips, entries in fips_entries().items():
@@ -107,7 +111,18 @@ def last_3_days():
             continue
         if entries[-1].cases < 50:
             continue
-        result[fips] = (entries[-1].cases / entries[-4].cases) ** (1/3) - 1
+        result[fips] = three_day_gain(entries[-1].cases, entries[-4].cases)
+    return result
+
+
+def smooth_daily_gain(cases):
+    if len(cases) < 4:
+        return [0 for _ in range(len(cases))]
+    result = [0, 0, 0]
+    for i in range(len(cases)):
+        if i < 4:
+            continue
+        result.append(three_day_gain(cases[i], cases[i - 3]))
     return result
 
 
@@ -118,7 +133,18 @@ for fips in top(5):
         print(entry, '%2.f%%' % (rate*100))
 
 
+DATES = list(reversed(sorted(set(e.date for e in entries()))))
+
+
+def padded(s):
+    if len(s) < len(DATES):
+        return s + [0 for _ in range(len(DATES))]
+    else:
+        return s
+
+
 def write_geojson():
+    fips2entries = fips_entries()
     latest_cases = latest()
     fips_trend = trend()
     fips_last_3_days = last_3_days()
@@ -129,14 +155,32 @@ def write_geojson():
             fips = p['GEO_ID'][-5:]
             entry = latest_cases.get(fips)
             p['cases'] = latest_cases[fips].cases if entry else 0
+            cases = [e.cases for e in fips2entries.get(fips, [])]
+            p['daily_cases'] = padded(list(reversed(cases)))
             t = fips_trend.get(fips)
             p['trend'] = t if t else ''
             i = fips_last_3_days.get(fips)
             p['increase'] = i*100 if i else 0
+            p['daily_increase'] = padded(list(reversed([
+                i*100 for i in smooth_daily_gain(cases)])))
 
         with open('county-cases.json', 'w') as fout:
             json.dump(data, fout)
     print('geojson written.')
 
 
+for fips in top(5):
+    print()
+    for entry, rate in increase([entry for entry in entries()
+        if entry.fips == fips]):
+        print(entry, '%2.f%%' % (rate*100))
+
+
+def write_dates():
+    with open('dates.json', 'w') as fout:
+        json.dump(DATES, fout)
+    print('dates written.')
+
+
 write_geojson()
+write_dates()

@@ -15,6 +15,57 @@ var popup = new mapboxgl.Popup({
   // closeButton: false
 });
 
+
+var caseColorRange = [
+    0, 'rgba(200,255,200,0.6)',
+    1, '#fed976',
+    10, '#feb24c',
+    100, '#fd8d3c',
+    1000, '#f03b20',
+    10000, '#bd0026']
+
+
+var incColorRange = [
+    0, 'rgba(200,255,200,0.6)',
+    5, '#fed976',
+    10, '#feb24c',
+    15, '#fd8d3c',
+    20, '#f03b20',
+    25, '#bd0026']
+
+
+function setSliderDate(i) {
+    $.getJSON('dates.json', function(dates) {
+        $("#slider").find(".ui-slider-handle").text(dates[i].slice(5));
+    })
+}
+
+
+$( function() {
+  $.getJSON('dates.json', function(dates) {
+    $( "#slider" ).slider({
+        orientation: "vertical",
+        min: - (dates.length - 1),
+        max: 0,
+        slide: function(event, ui) {
+            var i = Math.abs(ui.value)
+            map.setPaintProperty('us-counties', 'fill-color',
+                ['interpolate',
+                 ['linear'],
+                 ['at', i, ['get', 'daily_cases']]].concat(caseColorRange)
+            )
+            map.setPaintProperty('us-counties-inc', 'fill-color',
+                ['interpolate',
+                 ['linear'],
+                 ['at', i, ['get', 'daily_increase']]].concat(incColorRange)
+            )
+            setSliderDate(Math.abs(i))
+        }
+    })
+  })
+  setSliderDate(0)
+});
+
 map.on('load', function() {
   map.addSource('us-counties', {
     "type": "geojson",
@@ -28,17 +79,9 @@ map.on('load', function() {
     "paint": {
       "fill-outline-color": "rgba(500,500,500,0.6)",
       "fill-color":
-        [
-          'interpolate',
-          ['linear'],
-          ['get', 'cases'],
-          0, '#99ee99',
-          1, '#fed976',
-          10, '#feb24c',
-          100, '#fd8d3c',
-          1000, '#f03b20',
-          10000, '#bd0026'
-        ],
+        ['interpolate',
+         ['linear'],
+         ['at', 0, ['get', 'daily_cases']]].concat(caseColorRange),
       "fill-opacity": 0.6
     },
   }, 'place-city-sm')
@@ -50,17 +93,11 @@ map.on('load', function() {
     "paint": {
       "fill-outline-color": "rgba(500,500,500,0.6)",
       "fill-color":
-        [
-          'interpolate',
-          ['linear'],
-          ['get', 'increase'],
-          0, '#99ee99',
-          5, '#fed976',
-          10, '#feb24c',
-          15, '#fd8d3c',
-          20, '#f03b20',
-          25, '#bd0026'
-        ],
+        ['interpolate',
+         ['linear'],
+         //['get', 'increase']
+         ['at', 0, ['get', 'daily_increase']]
+        ].concat(incColorRange),
       "fill-opacity": 0.6
     },
     "filter": [
@@ -93,13 +130,19 @@ map.on('load', function() {
         fips == "36061") {
         title = 'New York City'
     }
+    console.log(feature.properties.daily_increase)
+    var daily_increases = JSON.parse(feature.properties.daily_increase)
+    var increase = 0
+    if (daily_increases.length > 0) {
+        increase = daily_increases[0]
+    }
     popup.setLngLat(e.lngLat)
       .setHTML(
           title +
           ' : ' +
           feature.properties.cases +
           '<br>Avg gain in last 3 days: ' + 
-          feature.properties.increase.toFixed(0) + '%' +
+          increase.toFixed(0) + '%' +
           feature.properties.trend)
       .addTo(map);
   });
