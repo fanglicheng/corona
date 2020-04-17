@@ -130,7 +130,6 @@ map.on('load', function() {
         fips == "36061") {
         title = 'New York City'
     }
-    console.log(feature.properties.daily_increase)
     var daily_increases = JSON.parse(feature.properties.daily_increase)
     var increase = 0
     if (daily_increases.length > 0) {
