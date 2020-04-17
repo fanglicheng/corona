@@ -1,7 +1,10 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css">
+  
+    
+  
+    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css">
   <link rel="stylesheet"
              href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -15,6 +18,9 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
 <script src="https://roblabs.com/mapboxgl.accessToken.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="strftime-min.js"></script>
+
 <script
     src="https://bootstrap-tagsinput.github.io/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js"></script>
 </head>
@@ -38,6 +44,10 @@
     number of cases <br>
     <input type="radio" id="color-inc" name="color" value="female">
     increasing rate
+    </p>
+    <p>
+      <div id="timeline-slider"></div>
+      <div id="play-button">Replay</div>
     </p>
   </div>
   </div>
