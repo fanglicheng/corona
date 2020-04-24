@@ -151,7 +151,7 @@ function addSlider() {
 function formatEntries(entries) {
   s = ''
   for (var e of entries) {
-    s += `<br>${e.date} ${e.cases} ${(e.inc * 100).toFixed(0)}%`
+    s += `<br>${e.date.slice(5)} ${e.cases} ${(e.inc * 100).toFixed(0)}%`
   }
   return s
 }
