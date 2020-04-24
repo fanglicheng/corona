@@ -151,9 +151,9 @@ function addSlider() {
 function formatEntries(entries) {
   s = ''
   for (var e of entries) {
-    s += `<br>${e.date.slice(5)} ${e.cases} ${(e.inc * 100).toFixed(0)}%`
+    s += `<tr><td>${e.date.slice(5)}</td><td>${e.cases}</td><td>${(e.inc * 100).toFixed(0)}%</td></tr>`
   }
-  return s
+  return `<br><table width="130px">${s}</table>`
 }
 
 map.on('load', async function() {
