@@ -149,11 +149,26 @@ function addSlider() {
 }
 
 function formatEntries(entries) {
-  s = ''
+  var dummy = $("<div>")
+
+  var container = $("<div>")
+  container.css('max-height', '200px')
+  container.css('overflow', 'auto')
+  container.scrollTop(200)
+  dummy.append(container)
+
+  var table = $("<table>")
+  table.css('width', '130px')
+  container.append(table)
+
   for (var e of entries) {
-    s += `<tr><td>${e.date.slice(5)}</td><td>${e.cases}</td><td>${(e.inc * 100).toFixed(0)}%</td></tr>`
+    table.append($("<tr>").append([
+      $("<td>").text(e.date.slice(5)),
+      $("<td>").text(e.cases),
+      $("<td>").text((e.inc * 100).toFixed(0) + '%')
+    ]))
   }
-  return `<br><table width="130px">${s}</table>`
+  return `<br>${dummy.html()}`
 }
 
 map.on('load', async function() {
@@ -220,8 +235,8 @@ map.on('load', async function() {
         title = 'New York City'
     }
     var entries = countyHistory[fips] || []
-    var latest = entries[entries.length - 1] || {}
-    var recent = entries.slice(Math.max(0, entries.length - 10), entries.length)
+    entries.reverse()
+    var latest = entries[0] || {}
     popup.setLngLat(e.lngLat)
       .setHTML(
           title +
@@ -229,7 +244,7 @@ map.on('load', async function() {
           (latest.cases || 0) +
           '<br>Avg gain in last 3 days: ' + 
           ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
-          formatEntries(recent)
+          formatEntries(entries)
           )
       .addTo(map);
   });
