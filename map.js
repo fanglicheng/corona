@@ -96,7 +96,7 @@ var loadData = async function () {
       }
     }
     dates = Array.from(unique_dates)
-    dates.sort()
+    dates.sort().reverse()
   });
 
   await addDataToGeoJson()
@@ -121,9 +121,7 @@ var incColorRange = [
 
 
 function setSliderDate(i) {
-    $.getJSON('dates.json', function(dates) {
-        $("#slider").find(".ui-slider-handle").text(dates[i].slice(5));
-    })
+  $("#slider").find(".ui-slider-handle").text(dates[i].slice(5));
 }
 
 
