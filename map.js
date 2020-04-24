@@ -113,11 +113,11 @@ var caseColorRange = [
 
 var incColorRange = [
     0, 'rgba(200,255,200,0.6)',
-    5, '#fed976',
-    10, '#feb24c',
-    15, '#fd8d3c',
-    20, '#f03b20',
-    25, '#bd0026']
+    0.05, '#fed976',
+    0.10, '#feb24c',
+    0.15, '#fd8d3c',
+    0.20, '#f03b20',
+    0.25, '#bd0026']
 
 
 function setSliderDate(i) {
@@ -135,12 +135,12 @@ function addSlider() {
       map.setPaintProperty('us-counties', 'fill-color',
         ['interpolate',
           ['linear'],
-          ['at', i, ['get', 'daily_cases'] || 0]].concat(caseColorRange)
+          ['at', i, ['get', 'daily_cases']]].concat(caseColorRange)
       )
       map.setPaintProperty('us-counties-inc', 'fill-color',
         ['interpolate',
           ['linear'],
-          ['at', i, ['get', 'daily_avg_incs'] || 0]].concat(incColorRange)
+          ['at', i, ['get', 'daily_avg_incs']]].concat(incColorRange)
       )
       setSliderDate(Math.abs(i))
     }
