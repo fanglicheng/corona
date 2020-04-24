@@ -15,6 +15,69 @@ var popup = new mapboxgl.Popup({
   // closeButton: false
 });
 
+var countyHistory = {}
+var geojson = undefined
+var dates = undefined
+
+function pad(array, length) {
+  while (array.length < length) {
+    array.push(0)
+  }
+}
+
+async function addDataToGeoJson() {
+  for (var f of geojson.features) {
+    if (f.type != 'Feature') {
+      continue
+    }
+    var fips = f.properties.GEO_ID.slice(-5)
+    var entries = countyHistory[fips] || []
+    var daily_cases = f.properties.daily_cases = []
+    var daily_avg_incs = f.properties.daily_avg_incs = []
+    for (var e of entries) {
+      daily_cases.push(e.cases)
+      daily_avg_incs.push(e.avg_inc)
+    }
+    daily_cases.reverse()
+    pad(daily_cases, dates.length)
+    daily_avg_incs.reverse()
+    pad(daily_avg_incs, dates.length)
+  }
+}
+
+function calcIncs(entries, d) {
+  if (entries.length == 0) {
+    d.inc = 0
+  } else {
+    d.inc = d.cases/entries[entries.length - 1].cases - 1
+  }
+  if (entries.length < 3) {
+    d.avg_inc = 0
+  } else {
+    d.avg_inc = (d.cases/entries[entries.length - 3].cases) ** (1/3) - 1
+  }
+}
+
+var loadData = async function () {
+  await d3.json("gz_2010_us_050_00_20m.json").then(function (d) {
+    geojson = d;
+  })
+  await d3.dsv(",", "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+        .then(function (data) {
+    let unique_dates = new Set()
+    for (d of data) {
+        d.cases = parseInt(d.cases)
+        entries = countyHistory[d.fips] || (countyHistory[d.fips] = [])
+        calcIncs(entries, d)
+        entries.push(d)
+        unique_dates.add(d.date)
+    }
+    dates = Array.from(unique_dates)
+    dates.sort()
+  });
+
+  await addDataToGeoJson()
+}
 
 var caseColorRange = [
     0, 'rgba(200,255,200,0.6)',
@@ -41,35 +104,45 @@ function setSliderDate(i) {
 }
 
 
-$( function() {
-  $.getJSON('dates.json', function(dates) {
-    $( "#slider" ).slider({
-        orientation: "vertical",
-        min: - (dates.length - 1),
-        max: 0,
-        slide: function(event, ui) {
-            var i = Math.abs(ui.value)
-            map.setPaintProperty('us-counties', 'fill-color',
-                ['interpolate',
-                 ['linear'],
-                 ['at', i, ['get', 'daily_cases']]].concat(caseColorRange)
-            )
-            map.setPaintProperty('us-counties-inc', 'fill-color',
-                ['interpolate',
-                 ['linear'],
-                 ['at', i, ['get', 'daily_increase']]].concat(incColorRange)
-            )
-            setSliderDate(Math.abs(i))
-        }
-    })
+function addSlider() {
+  $("#slider").slider({
+    orientation: "vertical",
+    min: - (dates.length - 1),
+    max: 0,
+    slide: function (event, ui) {
+      var i = Math.abs(ui.value)
+      map.setPaintProperty('us-counties', 'fill-color',
+        ['interpolate',
+          ['linear'],
+          ['at', i, ['get', 'daily_cases'] || 0]].concat(caseColorRange)
+      )
+      map.setPaintProperty('us-counties-inc', 'fill-color',
+        ['interpolate',
+          ['linear'],
+          ['at', i, ['get', 'daily_avg_incs'] || 0]].concat(incColorRange)
+      )
+      setSliderDate(Math.abs(i))
+    }
   })
   setSliderDate(0)
-});
+}
 
-map.on('load', function() {
+function formatEntries(entries) {
+  s = ''
+  for (var e of entries) {
+    s += `<br>${e.date} ${e.cases} ${(e.inc * 100).toFixed(0)}%`
+  }
+  return s
+}
+
+map.on('load', async function() {
+  await loadData()
+
+  addSlider()
+
   map.addSource('us-counties', {
-    "type": "geojson",
-    "data": "county-cases.json"
+    type: "geojson",
+    data: geojson
   });
 
   map.addLayer({
@@ -95,8 +168,7 @@ map.on('load', function() {
       "fill-color":
         ['interpolate',
          ['linear'],
-         //['get', 'increase']
-         ['at', 0, ['get', 'daily_increase']]
+         ['at', 0, ['get', 'daily_avg_incs']]
         ].concat(incColorRange),
       "fill-opacity": 0.6
     },
@@ -130,19 +202,18 @@ map.on('load', function() {
         fips == "36061") {
         title = 'New York City'
     }
-    var daily_increases = JSON.parse(feature.properties.daily_increase)
-    var increase = 0
-    if (daily_increases.length > 0) {
-        increase = daily_increases[0]
-    }
+    var entries = countyHistory[fips] || []
+    var latest = entries[entries.length - 1] || {}
+    var recent = entries.slice(Math.max(0, entries.length - 10), entries.length)
     popup.setLngLat(e.lngLat)
       .setHTML(
           title +
           ' : ' +
-          feature.properties.cases +
+          (latest.cases || 0) +
           '<br>Avg gain in last 3 days: ' + 
-          increase.toFixed(0) + '%' +
-          feature.properties.trend)
+          ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
+          formatEntries(recent)
+          )
       .addTo(map);
   });
 
