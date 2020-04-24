@@ -19,6 +19,27 @@ var countyHistory = {}
 var geojson = undefined
 var dates = undefined
 
+var ny = {'36085': 'Richmond',
+          '36047': 'Kings',
+          '36081': 'Queens',
+          '36005': 'Bronx',
+          '36061': 'New York'}
+
+var ny_fips = 'nyfips'
+
+function* maybe_ny(d_raw) {
+  if (d_raw.county == 'New York City') {
+    d = {...d_raw}
+    for (let [fips, name] of Object.entries(ny)) {
+      d.county = name
+      d.fips = fips
+      yield d
+    }
+  } else {
+    yield d_raw
+  }
+}
+
 function pad(array, length) {
   while (array.length < length) {
     array.push(0)
@@ -65,12 +86,14 @@ var loadData = async function () {
   await d3.dsv(",", "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
         .then(function (data) {
     let unique_dates = new Set()
-    for (d of data) {
+    for (let d_raw of data) {
+      for (let d of maybe_ny(d_raw)) {
         d.cases = parseInt(d.cases)
         entries = countyHistory[d.fips] || (countyHistory[d.fips] = [])
         calcIncs(entries, d)
         entries.push(d)
         unique_dates.add(d.date)
+      }
     }
     dates = Array.from(unique_dates)
     dates.sort()
@@ -195,11 +218,7 @@ map.on('load', async function() {
 
     fips = feature.properties.GEO_ID.slice(-5)
     var title = feature.properties.NAME
-    if (fips == "36085" ||
-        fips == "36047" ||
-        fips == "36081" ||
-        fips == "36005" ||
-        fips == "36061") {
+    if (fips in ny) {
         title = 'New York City'
     }
     var entries = countyHistory[fips] || []
