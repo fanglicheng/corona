@@ -214,14 +214,20 @@ map.on('load', async function() {
     ]
   }, 'place-city-sm')
 
-  map.on('click', function(e) {
+  map.on('mousemove', function(e) {
     var features = map.queryRenderedFeatures(e.point, {
       layers: ['us-counties', 'us-counties-inc']
     });
 
     // Change the cursor style as a UI indicator.
     map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+  });
 
+  map.on('click', function(e) {
+    var features = map.queryRenderedFeatures(e.point, {
+      layers: ['us-counties', 'us-counties-inc']
+    });
+    
     if (!features.length) {
       popup.remove();
       return;
