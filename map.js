@@ -171,6 +171,68 @@ function formatEntries(entries) {
   return `<br>${dummy.html()}`
 }
 
+function getCountyFeature(point) {
+  var features = map.queryRenderedFeatures(point, {
+    layers: ['us-counties', 'us-counties-inc']
+  });
+  if (features.length > 0) {
+    return features[0]
+  }
+}
+
+function popUp(point, latlng) {
+  if (!(feature = getCountyFeature(point))) {
+    popup.remove();
+    return;
+  }
+
+  fips = feature.properties.GEO_ID.slice(-5)
+  var title = feature.properties.NAME
+  if (fips in ny) {
+    title = 'New York City'
+  }
+  var entries = countyHistory[fips] || []
+  reversed_entries = entries.slice().reverse()
+  var latest = reversed_entries[0] || {}
+  popup.setLngLat(latlng)
+    .setHTML(
+      `<b>${title}</b>` +
+      '<br>Avg gain over last 3 days: ' +
+      ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
+      formatEntries(reversed_entries)
+    )
+    .addTo(map);
+}
+
+function getLatLng(position) {
+  return {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude
+  }
+}
+
+var showMyCounty = false;
+
+function myCounty() {
+  navigator.geolocation.getCurrentPosition((position) => {
+    var latlng = getLatLng(position)
+    popUp(map.project(getLatLng(position)), latlng)
+  })
+}
+
+function fly() {
+  navigator.geolocation.getCurrentPosition((position) => {
+    map.flyTo({ center: getLatLng(position), zoom: 9 })
+  })
+}
+
+map.on('moveend', function(e){
+  if(showMyCounty){
+     myCounty()
+     showMyCounty = false
+  }
+});
+
 map.on('load', async function() {
   await loadData()
 
@@ -224,35 +286,17 @@ map.on('load', async function() {
   });
 
   map.on('click', function(e) {
-    var features = map.queryRenderedFeatures(e.point, {
-      layers: ['us-counties', 'us-counties-inc']
-    });
-    
-    if (!features.length) {
-      popup.remove();
-      return;
-    }
-
-    var feature = features[0];
-
-    fips = feature.properties.GEO_ID.slice(-5)
-    var title = feature.properties.NAME
-    if (fips in ny) {
-        title = 'New York City'
-    }
-    var entries = countyHistory[fips] || []
-    reversed_entries = entries.slice().reverse()
-    var latest = reversed_entries[0] || {}
-    popup.setLngLat(e.lngLat)
-      .setHTML(
-          `<b>${title}</b>` +
-          '<br>Avg gain over last 3 days: ' + 
-          ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
-          formatEntries(reversed_entries)
-          )
-      .addTo(map);
+    popUp(e.point, e.lngLat)
   });
 
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      if (getCountyFeature(map.project(getLatLng(position))) != undefined) {
+        showMyCounty = true
+        fly()
+      }
+    })
+  }
 });
 
 $("#color-case").click(function() {
