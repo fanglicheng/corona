@@ -235,7 +235,7 @@ map.on('load', async function() {
         title = 'New York City'
     }
     var entries = countyHistory[fips] || []
-    entries.reverse()
+    reversed_entries = entries.slice().reverse()
     var latest = entries[0] || {}
     popup.setLngLat(e.lngLat)
       .setHTML(
@@ -244,7 +244,7 @@ map.on('load', async function() {
           (latest.cases || 0) +
           '<br>Avg gain in last 3 days: ' + 
           ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
-          formatEntries(entries)
+          formatEntries(reversed_entries)
           )
       .addTo(map);
   });
