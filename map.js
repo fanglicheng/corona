@@ -211,19 +211,12 @@ function getLatLng(position) {
   }
 }
 
-var showMyCounty = false;
+var showMyCounty = false
+var my_position = undefined
 
 function myCounty() {
-  navigator.geolocation.getCurrentPosition((position) => {
-    var latlng = getLatLng(position)
-    popUp(map.project(getLatLng(position)), latlng)
-  })
-}
-
-function fly() {
-  navigator.geolocation.getCurrentPosition((position) => {
-    map.flyTo({ center: getLatLng(position), zoom: 9 })
-  })
+  var latlng = getLatLng(my_position)
+  popUp(map.project(latlng), latlng)
 }
 
 map.on('moveend', function(e){
@@ -291,9 +284,11 @@ map.on('load', async function() {
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
-      if (getCountyFeature(map.project(getLatLng(position))) != undefined) {
+      my_position = position
+      var latlng = getLatLng(position)
+      if (getCountyFeature(map.project(latlng)) != undefined) {
         showMyCounty = true
-        fly()
+        map.flyTo({ center: latlng, zoom: 9 })
       }
     })
   }
