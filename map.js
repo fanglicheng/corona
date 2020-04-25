@@ -236,13 +236,11 @@ map.on('load', async function() {
     }
     var entries = countyHistory[fips] || []
     reversed_entries = entries.slice().reverse()
-    var latest = entries[0] || {}
+    var latest = reversed_entries[0] || {}
     popup.setLngLat(e.lngLat)
       .setHTML(
-          title +
-          ' : ' +
-          (latest.cases || 0) +
-          '<br>Avg gain in last 3 days: ' + 
+          `<b>${title}</b>` +
+          '<br>Avg gain over last 3 days: ' + 
           ((latest.avg_inc || 0) * 100).toFixed(0) + '%' +
           formatEntries(reversed_entries)
           )
